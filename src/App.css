@@ -1,4 +1,4 @@
-.App {
+/* .App {
   text-align: center;
 }
 
@@ -35,4 +35,18 @@
   to {
     transform: rotate(360deg);
   }
+} */
+
+.TitleText {
+  font-weight: 500;
+  font-size: 19px;
+  line-height: 28px;
+  color: #414046;
+}
+
+.Subtitle {
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  color: #414046;
 }
