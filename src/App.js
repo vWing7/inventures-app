@@ -58,7 +58,7 @@ function App() {
           console.log(err);
         }
       )
-    setNow(new Date("2022-05-30T15:00:00Z").setHours(0, 0, 0, 0));
+    setNow(new Date().setHours(0, 0, 0, 0));
   }, [])
 
   useEffect(() => {
@@ -124,8 +124,11 @@ function App() {
         secondary={
           <React.Fragment>
             <Typography >{item.concentration}</Typography>
-            <Typography className={item.quantity <= 5 ?  "Danger" : "Normal"}>Quedan {item.quantity} comprimidos</Typography>
-            <Typography className={item.quantity <= 5 ?  "Danger" : "Normal"}>Para {item.quantity} dias</Typography>
+            <Typography className={item.quantity <= 5 ?  "Danger" : "Normal"}>
+              {item.quantity === 0 ? "No te quedan comprimidos": `Quedan ${item.quantity} comprimidos`}
+            </Typography>
+            <Typography className={item.quantity <= 5 ?  "Danger" : "Normal"}>
+              {item.quantity === 0 ? "Agrega al carro para comprar": `Para ${item.quantity} dias`}</Typography>
           </React.Fragment>
         }
       />
