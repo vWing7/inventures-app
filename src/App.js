@@ -10,17 +10,16 @@ import SearchIcon from '@mui/icons-material/Search';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
-import Divider from '@mui/material/Divider';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
 import Avatar from '@mui/material/Avatar';
+import Badge from '@mui/material/Badge';
 
 import { useState, useEffect, useRef } from 'react';
 
 const apiUrl= "https://private-anon-520ba36d5a-inventurestest.apiary-mock.com/"
 
 function App() {
-  const [error, setError] = useState(null);
   const [isLoaded1, setIsLoaded1] = useState(false);
   const [isLoaded2, setIsLoaded2] = useState(false);
   const [products, setProducts] = useState([]);
@@ -37,13 +36,12 @@ function App() {
       .then(res => res.json())
       .then( 
         (result) => {
-          // console.log(result)
           setIsLoaded1(true);
           setProducts(result.payload);
         },
         (err) => {
           setIsLoaded1(true);
-          setError(err);
+          console.log(err)
         }
       )
     fetch(apiUrl + "purchases", {
@@ -57,22 +55,20 @@ function App() {
         },
         (err) => {
           setIsLoaded2(true);
-          setError(err);
+          console.log(err);
         }
       )
-    setNow(new Date("2022-05-15T15:06:00Z"));
+    setNow(new Date("2022-05-30T15:00:00Z").setHours(0, 0, 0, 0));
   }, [])
 
   useEffect(() => {
     if (previousValues.current.isLoaded1 !== isLoaded1 && previousValues.current.isLoaded2 !== isLoaded2
       && products && purchases) {
-      console.log(purchases)
       const curPurchases = []; 
       const allPurchases = purchases;
-      console.log(allPurchases)
-      allPurchases.sort((a, b) => Date(a.received_date) < Date(b.received_date) ? 1 : -1);
-      allPurchases.forEach( (purchase) => {
-        const thisDate = new Date(purchase.received_date);
+      allPurchases.sort((a, b) => Date(a.received_date) < Date(b.received_date) ? -1 : 1);
+      allPurchases.forEach( (purchase, i) => {
+        const thisDate = new Date(purchase.received_date).setHours(0, 0, 0, 0);
         purchase.details.forEach( (item) => {
           const curProdIdx = curPurchases.findIndex(e => e.id === item.product_id)
           if (curProdIdx < 0) {
@@ -82,16 +78,16 @@ function App() {
               last_bought: purchase.received_date
             })
           } else {
-            const lastDate = new Date(curPurchases[curProdIdx].last_bought);
+            const lastDate = new Date(curPurchases[curProdIdx].last_bought).setHours(0, 0, 0, 0);
             const amountLeft = Math.max(curPurchases[curProdIdx].quantity - 
-              Math.ceil((thisDate - lastDate)/(1000 * 60 * 60 * 24)), 0);
+              Math.round((thisDate - lastDate)/(1000 * 60 * 60 * 24)), 0);
             curPurchases[curProdIdx].quantity = amountLeft + item.quantity;
             curPurchases[curProdIdx].last_bought = purchase.received_date;
           }
         })
       })
       curPurchases.forEach((item, i) => {
-        const lastBought = new Date(item.last_bought);
+        const lastBought = new Date(item.last_bought).setHours(0, 0, 0, 0);
         curPurchases[i].quantity = Math.max(item.quantity - 
           Math.ceil((now - lastBought)/(1000 * 60 * 60 * 24)), 0);
         const curProduct = products.find(e => e.id === item.id);
@@ -99,35 +95,40 @@ function App() {
         curPurchases[i].concentration = curProduct.concentration;
         curPurchases[i].imageUrl = curProduct.imagesUrl;
       })
+      curPurchases.sort((a, b) => a.quantity < b.quantity ? -1 : 1);
       setMyItems(curPurchases)
       previousValues.current = { isLoaded1, isLoaded2 };
     }
   }, [isLoaded1, isLoaded2, purchases, now, products]);
 
   const showItems = myItems.map((item) =>
-    <ListItem key={item.id}>
+    <ListItem key={item.id}
+      secondaryAction={
+      <IconButton 
+        edge="end"
+        aria-label="add item"
+        color="inherit">
+        <Badge badgeContent={"+"} color="primary">
+          <ShoppingCartIcon />
+        </Badge>
+      </IconButton>
+    }>
       <ListItemAvatar>
-        {/* <Box
-          component="img"
-          alt={item.name}
-          src={item.imageUrl}
-          sx={{width: "auto", height: "100%"}}/>  */}
           <Avatar alt={item.name} 
             src={item.imageUrl} 
             variant="square"
             sx={{maxWidth: "100%", height: "auto"}}/>
       </ListItemAvatar>
-      <ListItemText
+      <ListItemText 
         primary={item.name}
         secondary={
           <React.Fragment>
-            <Box >{item.concentration}</Box>
-            <Box className={item.quantity <= 5 ?  "Danger" : "Normal"}>Quedan {item.quantity} comprimidos</Box>
-            <Box className={item.quantity <= 5 ?  "Danger" : "Normal"}>Para {item.quantity} dias</Box>
+            <Typography >{item.concentration}</Typography>
+            <Typography className={item.quantity <= 5 ?  "Danger" : "Normal"}>Quedan {item.quantity} comprimidos</Typography>
+            <Typography className={item.quantity <= 5 ?  "Danger" : "Normal"}>Para {item.quantity} dias</Typography>
           </React.Fragment>
         }
       />
-      <Divider variant="inset" component="li" />
     </ListItem>
   );
 
@@ -151,7 +152,7 @@ function App() {
             size="large"
             edge="start"
             color="inherit"
-            aria-label="menu"
+            aria-label="search"
             sx={{ mr: 2 }}
           >
             <SearchIcon />
@@ -160,7 +161,7 @@ function App() {
             size="large"
             edge="start"
             color="inherit"
-            aria-label="menu"
+            aria-label="shopping cart"
             sx={{ mr: 2 }}
           >
             <ShoppingCartIcon />
@@ -174,6 +175,7 @@ function App() {
           alignItems: 'center',
           justifyContent: 'center'
           }}>
+        <Box className='TitleText'>💊</Box>
         <Box className='TitleText'>Revisa tus compras</Box>
         <Box className='Subtitle'>Agrega al carro si necesitas reponer</Box>
         
@@ -186,8 +188,7 @@ function App() {
       </Box>
       <List
         sx={{ 
-          width: '100%', 
-          maxWidth: 360, 
+          width: '98%',
           bgcolor: '#FFFFFF' }}>
         {showItems}
       </List>
